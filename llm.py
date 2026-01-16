@@ -1,5 +1,4 @@
 from typing import Literal
-from langchain_core.messages import HumanMessage, SystemMessage
 from models import CV, CVWithPersonalInfo
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_core.output_parsers import PydanticOutputParser
@@ -32,20 +31,18 @@ class LLM:
             raise ValueError(f"Unsupported LLM provider: {provider}")
 
         self.__init_cv_parser()
-
-        self.cv_generator_structured_llm = self.model.with_structured_output(CV)
+        self.__init_cv_generator()
 
     def __init_cv_parser(self):
         self.cv_parser = PydanticOutputParser(pydantic_object=CVWithPersonalInfo)
         self.cv_parser_prompt = PromptTemplate(
-            template="""You are an expert CV parser. 
-    Extract all information from the following CV text into the requested JSON format.
-    
-    {format_instructions}
-    
-    CV Text:
-    {raw_cv_text}
-    """,
+            template=(
+                "You are an expert CV parser."
+                "Extract all information from the following CV text into the requested JSON format.\n"
+                "{format_instructions}"
+                "CV Text:\n"
+                "{raw_cv_text}"
+            ),
             input_variables=["raw_cv_text"],
             partial_variables={
                 "format_instructions": self.cv_parser.get_format_instructions()
@@ -53,34 +50,55 @@ class LLM:
         )
         self.cv_parser_chain = self.cv_parser_prompt | self.model | self.cv_parser
 
-    def generate_cv(
-        self, system_prompt: str, user_story: str, job_description: str, base_cv: CV
-    ) -> CV:
-        messages = [
-            SystemMessage(content=system_prompt),
-            HumanMessage(
-                content=(
-                    f"Here is the job seeker story:\n{user_story}\n\n"
-                    f"Here is the job description:\n{job_description}\n\n"
-                    f"Here is the base CV:\n{base_cv}\n\n"
-                    "Generate a tailored CV based on the above information."
-                )
+    def __init_cv_generator(self):
+        self.cv_generator_parser = PydanticOutputParser(pydantic_object=CV)
+        self.cv_generator_prompt = PromptTemplate(
+            template=(
+                "You are an expert CV generator."
+                "Based on the job seeker story, job description, and base CV provided,"
+                "generate a tailored CV in the requested JSON format.\n"
+                "{format_instructions}\n"
+                "Job Seeker Story:\n"
+                "{user_story}\n\n"
+                "Job Description:\n"
+                "{job_description}\n\n"
+                "Base CV:\n"
+                "{base_cv}"
             ),
-        ]
+            input_variables=["user_story", "job_description", "base_cv"],
+            partial_variables={
+                "format_instructions": self.cv_generator_parser.get_format_instructions()
+            },
+        )
+        self.cv_generator_chain = (
+            self.cv_generator_prompt | self.model | self.cv_generator_parser
+        )
 
-        response = self.cv_generator_structured_llm.invoke(messages)
+    def generate_cv(
+        self, user_story: str, job_description: str, base_cv: CV
+    ) -> CV:
+        response = self.cv_generator_chain.invoke(
+            {
+                "user_story": user_story,
+                "job_description": job_description,
+                "base_cv": base_cv.model_dump_json(),
+            }
+        )
 
-        return response  # type: ignore
+        return response
 
     def parse_cv_with_personal_info(self, raw_cv_path) -> CVWithPersonalInfo:
 
         loader = PyPDFLoader(raw_cv_path)
 
         docs = loader.load_and_split()
+        # load hypertext links if any
 
         raw_cv_text = "\n".join([doc.page_content for doc in docs])
 
         parsed_cv = self.cv_parser_chain.invoke({"raw_cv_text": raw_cv_text})
+        # TODO do fuzzy matching to link url_annotations to parsed_cv.links
+        # get url by reading all annotations from pdf
 
         return parsed_cv
 
