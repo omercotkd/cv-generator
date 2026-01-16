@@ -22,6 +22,7 @@ class CV(BaseModel):
         label: str = Field(..., title="Link Label")
         # Optional - sometimes the LLM returned null for url
         url: Optional[str] = Field(None, title="Link URL")
+
     class Experience(BaseModel):
         position: str = Field(..., title="Position")
         company: str = Field(..., title="Company")
@@ -68,7 +69,6 @@ class CV(BaseModel):
 
 class CVWithPersonalInfo(CV):
 
-
     full_name: str = Field(..., title="Full Name")
     email: str = Field(..., title="Email Address")
     phone: str = Field(..., title="Phone Number")
@@ -87,10 +87,22 @@ class CVWithPersonalInfo(CV):
             volunteer_work=self.volunteer_work,
         )
 
+    @staticmethod
+    def from_cv(
+        cv: CV, full_name: str, email: str, phone: str, links: list[CV.Link]
+    ) -> "CVWithPersonalInfo":
+        return CVWithPersonalInfo(
+            full_name=full_name,
+            email=email,
+            phone=phone,
+            links=links,
+            title=cv.title,
+            self_summary=cv.self_summary,
+            experiences=cv.experiences,
+            certificates=cv.certificates,
+            languages=cv.languages,
+            education=cv.education,
+            volunteer_work=cv.volunteer_work,
+            skills=cv.skills,
+        )
 
-class CVGenerationResponse(BaseModel):
-    tailored_cv: CV = Field(..., title="Tailored CV")
-    file_name: str = Field(
-        ...,
-        title="Generated CV File Name",
-    )
