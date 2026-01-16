@@ -54,16 +54,24 @@ class LLM:
         self.cv_generator_parser = PydanticOutputParser(pydantic_object=CV)
         self.cv_generator_prompt = PromptTemplate(
             template=(
-                "You are an expert CV generator."
-                "Based on the job seeker story, job description, and base CV provided,"
-                "generate a tailored CV in the requested JSON format.\n"
+                "You are an expert CV writer and career advisor. "
+                "Your task is to tailor the provided CV to match the given job description."
                 "{format_instructions}\n"
-                "Job Seeker Story:\n"
-                "{user_story}\n\n"
-                "Job Description:\n"
-                "{job_description}\n\n"
-                "Base CV:\n"
-                "{base_cv}"
+                "You will be provided with the current CV and a job seeker story."
+                "Use only the information from these sources for the output data—do not fabricate or add information not present in the provided materials."
+                "Instructions:\n"
+                "1. Analyze the job description carefully to understand the key requirements, skills, and qualifications\n"
+                "2. Modify the CV content to emphasize relevant experience and skills\n"
+                "3. Rewrite bullet points to highlight achievements that match the job requirements\n"
+                "4. Use keywords from the job description naturally throughout the CV\n"
+                "5. Maintain professionalism and truthfulness - do not add fake information\n"
+                "6. Keep the same writing style but optimize the content for this specific role\n"
+                "Here is the job description:\n"
+                "{job_description}\n"
+                "Here is the base CV in JSON format:\n"
+                "{base_cv}\n"
+                "Here is the user story to consider:\n"
+                "{user_story}\n"
             ),
             input_variables=["user_story", "job_description", "base_cv"],
             partial_variables={
@@ -74,9 +82,7 @@ class LLM:
             self.cv_generator_prompt | self.model | self.cv_generator_parser
         )
 
-    def generate_cv(
-        self, user_story: str, job_description: str, base_cv: CV
-    ) -> CV:
+    def generate_cv(self, user_story: str, job_description: str, base_cv: CV) -> CV:
         response = self.cv_generator_chain.invoke(
             {
                 "user_story": user_story,

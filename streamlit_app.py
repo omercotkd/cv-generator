@@ -1,9 +1,11 @@
 import streamlit as st
 from pathlib import Path
 import json
+import uuid
 from models import CVWithPersonalInfo
 from cv_generator import generate_cv
 from cv_analyzer import analyze_cv_file
+from cv_renderer import render_cv_template
 from text import TRANSLATIONS
 
 
@@ -95,8 +97,14 @@ def generate_tailored_cv(job_description: str, user_input: str):
         with open(output_path, "w", encoding="utf-8") as f:
             json.dump(tailored_cv.model_dump(), f, indent=2, ensure_ascii=False)
         
+        # Render HTML version with random filename
+        random_filename = f"cv_{uuid.uuid4().hex[:8]}.html"
+        html_output_path = temp_folder / random_filename
+        render_cv_template(tailored_cv, html_output_path)
+        
         st.success(f"{st.session_state.translate.get('generate_success', 'CV generated successfully!')}")
-        st.info(f"Saved to: {output_path}")
+        st.info(f"Saved JSON to: {output_path}")
+        st.info(f"Saved HTML to: {html_output_path}")
         
         # Display the generated CV
         with st.expander("View Generated CV"):

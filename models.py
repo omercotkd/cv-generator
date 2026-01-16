@@ -64,7 +64,7 @@ class CV(BaseModel):
     volunteer_work: list[Experience] = Field(
         default_factory=list, title="Volunteer Work"
     )
-    skills: list[Skill] = Field(default_factory=list, title="Skills")
+    skills: list[Skill] = Field(default_factory=list, title="Skills", min_length=1)
 
 
 class CVWithPersonalInfo(CV):
