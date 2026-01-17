@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 from pathlib import Path
 import json
 import uuid
@@ -106,8 +107,65 @@ def generate_tailored_cv(job_description: str, user_input: str):
         st.info(f"Saved JSON to: {output_path}")
         st.info(f"Saved HTML to: {html_output_path}")
         
-        # Display the generated CV
-        with st.expander("View Generated CV"):
+        # Display the generated CV in iframe
+        st.subheader("CV Preview")
+        
+        # Read the HTML content
+        with open(html_output_path, "r", encoding="utf-8") as f:
+            html_content = f.read()
+        
+        # Display iframe with the CV
+        components.html(
+            f"""
+            <div style="border: 1px solid #ccc; border-radius: 5px; overflow: hidden;">
+                <div style="background-color: #f0f0f0; padding: 10px; border-bottom: 1px solid #ccc;">
+                    <button onclick="printCV()" style="
+                        background-color: #0066cc;
+                        color: white;
+                        border: none;
+                        padding: 8px 16px;
+                        border-radius: 4px;
+                        cursor: pointer;
+                        font-size: 14px;
+                    ">
+                        🖨️ Print CV (A4)
+                    </button>
+                </div>
+                <iframe id="cvFrame" srcdoc='{html_content.replace("'", "&apos;")}' 
+                        style="width: 100%; height: 800px; border: none;">
+                </iframe>
+            </div>
+            <script>
+                function printCV() {{
+                    var iframe = document.getElementById('cvFrame');
+                    var iframeWindow = iframe.contentWindow || iframe.contentDocument.defaultView;
+                    
+                    // Create a style element for print settings
+                    var style = iframeWindow.document.createElement('style');
+                    style.innerHTML = `
+                        @media print {{
+                            @page {{
+                                size: A4;
+                                margin: 0;
+                            }}
+                            body {{
+                                margin: 0;
+                            }}
+                        }}
+                    `;
+                    iframeWindow.document.head.appendChild(style);
+                    
+                    iframeWindow.focus();
+                    iframeWindow.print();
+                }}
+            </script>
+            """,
+            height=900,
+            scrolling=True
+        )
+        
+        # Display the generated CV JSON
+        with st.expander("View Generated CV JSON"):
             st.json(tailored_cv.model_dump())
         
     except Exception as e:
