@@ -13,23 +13,23 @@
 
         body {
             font-family: Arial, sans-serif;
-            font-size: 11pt;
-            line-height: 1.4;
+            font-size: 10pt;
             color: #000;
             background: #fff;
-            padding: 0.75in;
-            max-width: 8.5in;
+            padding: 1.2cm;
+            width: 21cm;
+            min-height: 29.7cm;
             margin: 0 auto;
+            box-sizing: border-box;
         }
 
         .header {
             text-align: center;
-            margin-bottom: 20px;
             padding-bottom: 5px;
         }
 
         .header h1 {
-            font-size: 24pt;
+            font-size: 14pt;
             font-weight: bold;
             margin-bottom: 0;
             letter-spacing: 0.5px;
@@ -37,21 +37,19 @@
         }
 
         .header .title {
-            font-size: 24pt;
+            font-size: 14pt;
             font-weight: bold;
-            margin-bottom: 10px;
             color: #000;
             display: inline;
         }
 
         .header .title::before {
-            content: " - ";
+            content: " | ";
         }
 
         .contact-info {
             font-size: 10pt;
             color: #333;
-            line-height: 1.6;
         }
 
         .contact-info a {
@@ -64,33 +62,28 @@
         }
 
         .section {
-            margin-bottom: 25px;
+            margin-top: 10px;
         }
 
         .section-title {
-            font-size: 14pt;
+            font-size: 15pt;
             font-weight: bold;
-            margin-bottom: 12px;
             padding-bottom: 5px;
-            border-bottom: 2px solid #333;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            text-decoration: underline;
         }
 
         .summary {
-            text-align: justify;
-            line-height: 1.5;
-            margin-bottom: 20px;
-            margin-top: 15px;
+            text-align: center;
+
         }
 
         .experience-item, .volunteer-item {
-            margin-bottom: 18px;
+            margin-bottom: 8px;
             page-break-inside: avoid;
         }
 
         .experience-header {
-            margin-bottom: 8px;
+
         }
 
         .position {
@@ -113,12 +106,10 @@
 
         .experience-bullets {
             margin-left: 20px;
-            margin-top: 8px;
         }
 
         .experience-bullets li {
             margin-bottom: 5px;
-            line-height: 1.4;
         }
 
         .skills-list {
@@ -192,20 +183,18 @@
 
         .education-details {
             margin-left: 20px;
-            margin-top: 5px;
         }
 
         .education-details li {
-            margin-bottom: 3px;
         }
 
         .skills-section {
-            margin-bottom: 15px;
+            display: flex;
+            flex-direction: row;
         }
 
         .skill-category {
             font-weight: bold;
-            margin-bottom: 5px;
         }
 
         .skill-items {
@@ -252,7 +241,7 @@
     <!-- Experience Section -->
     {% if experiences %}
     <div class="section">
-        <div class="section-title">Professional Experience</div>
+        <div class="section-title">Experience</div>
         {% for exp in experiences %}
         <div class="experience-item">
             <div class="experience-header">
@@ -272,7 +261,7 @@
             {% endif %}
             {% if exp.skills %}
             <div class="skills-list">
-                <strong>Technologies:</strong> {{ exp.skills | join(', ') }}
+                <strong>Technologies:</strong>{{ exp.skills | join(', ') }}
             </div>
             {% endif %}
         </div>
@@ -283,7 +272,7 @@
     <!-- Skills Section -->
     {% if skills %}
     <div class="section">
-        <div class="section-title">Technical Skills</div>
+        <div class="section-title">Skills</div>
         {% for skill_cat in skills %}
         <div class="skills-section">
             <div class="skill-category">{{ skill_cat.category }}:</div>
@@ -304,7 +293,7 @@
             (<span class="certificate-date">{{ cert.date }}</span>)
             {% if cert.link and cert.link.url %}
             <span class="certificate-link">
-                <a href="{{ cert.link.url }}" target="_blank">{{ cert.link.label }}</a>
+                [<a href="{{ cert.link.url }}" target="_blank">{{ cert.link.label }}</a>]
             </span>
             {% endif %}
         </div>
@@ -370,7 +359,7 @@
             {% endif %}
             {% if vol.skills %}
             <div class="skills-list">
-                <strong>Technologies:</strong> {{ vol.skills | join(', ') }}
+                <strong>Technologies:</strong>{{ vol.skills | join(', ') }}
             </div>
             {% endif %}
         </div>
